@@ -1,8 +1,10 @@
-const { MongoClient, ObjectID } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 
 const uri = process.env.MONGO_URL || "mongodb://localhost:27017";
 const DB_NAME = "ReferenceManager";
 const COL_NAME = "Reference";
+
+
 
 async function getReferences(query, page, pageSize) {
   console.log("getReferences", query);
@@ -13,7 +15,7 @@ async function getReferences(query, page, pageSize) {
     await client.connect();
 
     const queryObj = {
-      // tile : { $regex : `^${query}`, $options : "i" }
+      title : { $regex : `^${query}`, $options : "i" }
     };
 
     return await client
@@ -38,7 +40,7 @@ async function getReferencesCount(query) {
     await client.connect();
 
     const queryObj = {
-      tile : { $regex : `^${query}`, $options : "i" }
+      title : { $regex : `^${query}`, $options : "i" }
     };
 
     return await client
@@ -54,26 +56,24 @@ async function getReferencesCount(query) {
 async function getReferenceByID(reference_id) {
   console.log("getReferenceByID", reference_id);
 
-  // const db = await open({
-  //   filename: "./db/database.db",
-  //   driver: sqlite3.Database,
-  // });
 
-  // const stmt = await db.prepare(`
-  //   SELECT * FROM Reference
-  //   WHERE reference_id = @reference_id;
-  //   `);
+  const client = new MongoClient(uri);
 
-  // const params = {
-  //   "@reference_id": reference_id,
-  // };
+  try {
+    await client.connect();
 
-  // try {
-  //   return await stmt.get(params);
-  // } finally {
-  //   await stmt.finalize();
-  //   db.close();
-  // }
+    const queryObj = {
+      // _id: new ObjectId(reference_id),
+      reference_id: +reference_id
+    };
+
+    return await client
+      .db(DB_NAME)
+      .collection(COL_NAME)
+      .findOne(queryObj);
+  } finally {
+    client.close();
+  }
 }
 
 async function updateReferenceByID(reference_id, ref) {
