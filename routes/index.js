@@ -37,18 +37,17 @@ router.get("/references/:reference_id/edit", async (req, res, next) => {
   try {
 
     let ref = await myDb.getReferenceByID(reference_id);
-    let authors = await myDb.getAuthorsByReferenceID(reference_id);
+    // let authors = await myDb.getAuthorsByReferenceID(reference_id);
 
     console.log("edit reference", {
       ref,
-      authors,
+
       msg,
     });
 
 
     res.render("./pages/editReference", {
       ref,
-      authors,
       msg,
     });
   } catch (err) {
@@ -76,22 +75,24 @@ router.post("/references/:reference_id/edit", async (req, res, next) => {
   }
 });
 
-router.post("/references/:reference_id/addAuthor", async (req, res, next) => {
-  console.log("Add author", req.body);
+router.post("/references/:reference_id/addVenue", async (req, res, next) => {
+  console.log("Add Venue", req.body);
   const reference_id = req.params.reference_id;
-  const author_id = req.body.author_id;
+  const venue = {
+    name: req.body.name,
+    type: req.body.type
+  };
 
   try {
 
-    let updateResult = await myDb.addAuthorIDToReferenceID(reference_id, author_id);
-    console.log("addAuthorIDToReferenceID", updateResult);
+    let updateResult = await myDb.addVenueToReferenceID(reference_id, venue);
+    console.log("addVenueToReferenceID", updateResult);
 
-    if (updateResult && updateResult.changes === 1) {
-      res.redirect(`/references/${reference_id}/edit?msg=Author added`);
+    if (updateResult && updateResult.modifiedCount === 1) {
+      res.redirect(`/references/${reference_id}/edit?msg=Venue added`);
     } else {
-      res.redirect(`/references/${reference_id}/edit?msg=Error adding author`);
+      res.redirect(`/references/${reference_id}/edit?msg=Error adding venue`);
     }
-
   } catch (err) {
     next(err);
   }

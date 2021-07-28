@@ -4,8 +4,6 @@ const uri = process.env.MONGO_URL || "mongodb://localhost:27017";
 const DB_NAME = "ReferenceManager";
 const COL_NAME = "Reference";
 
-
-
 async function getReferences(query, page, pageSize) {
   console.log("getReferences", query);
 
@@ -15,16 +13,16 @@ async function getReferences(query, page, pageSize) {
     await client.connect();
 
     const queryObj = {
-      title : { $regex : `^${query}`, $options : "i" }
+      title: { $regex: `^${query}`, $options: "i" },
     };
 
     return await client
       .db(DB_NAME)
       .collection(COL_NAME)
       .find(queryObj)
-      .sort( { created_on : -1})
+      .sort({ created_on: -1 })
       .limit(pageSize)
-      .skip( (page-1) * pageSize)
+      .skip((page - 1) * pageSize)
       .toArray();
   } finally {
     client.close();
@@ -40,14 +38,10 @@ async function getReferencesCount(query) {
     await client.connect();
 
     const queryObj = {
-      title : { $regex : `^${query}`, $options : "i" }
+      title: { $regex: `^${query}`, $options: "i" },
     };
 
-    return await client
-      .db(DB_NAME)
-      .collection(COL_NAME)
-      .find(queryObj)
-      .count();
+    return await client.db(DB_NAME).collection(COL_NAME).find(queryObj).count();
   } finally {
     client.close();
   }
@@ -56,7 +50,6 @@ async function getReferencesCount(query) {
 async function getReferenceByID(reference_id) {
   console.log("getReferenceByID", reference_id);
 
-
   const client = new MongoClient(uri);
 
   try {
@@ -64,13 +57,10 @@ async function getReferenceByID(reference_id) {
 
     const queryObj = {
       // _id: new ObjectId(reference_id),
-      reference_id: +reference_id
+      reference_id: +reference_id,
     };
 
-    return await client
-      .db(DB_NAME)
-      .collection(COL_NAME)
-      .findOne(queryObj);
+    return await client.db(DB_NAME).collection(COL_NAME).findOne(queryObj);
   } finally {
     client.close();
   }
@@ -79,32 +69,28 @@ async function getReferenceByID(reference_id) {
 async function updateReferenceByID(reference_id, ref) {
   console.log("updateReferenceByID", reference_id, ref);
 
-  // const db = await open({
-  //   filename: "./db/database.db",
-  //   driver: sqlite3.Database,
-  // });
+  const client = new MongoClient(uri);
 
-  // const stmt = await db.prepare(`
-  //   UPDATE Reference
-  //   SET
-  //     title = @title,
-  //     published_on = @published_on
-  //   WHERE
-  //      reference_id = @reference_id;
-  //   `);
+  try {
+    await client.connect();
 
-  // const params = {
-  //   "@reference_id": reference_id,
-  //   "@title": ref.title,
-  //   "@published_on": ref.published_on,
-  // };
+    const queryObj = {
+      // _id: new ObjectId(reference_id),
+      reference_id: +reference_id,
+    };
 
-  // try {
-  //   return await stmt.run(params);
-  // } finally {
-  //   await stmt.finalize();
-  //   db.close();
-  // }
+    // If tags is a string convert it to an array
+    if (typeof ref.tags === "string") {
+      ref.tags = ref.tags.split(",").map((t) => t.trim()); // removes whitespace
+    }
+
+    return await client
+      .db(DB_NAME)
+      .collection(COL_NAME)
+      .updateOne(queryObj, { $set: ref });
+  } finally {
+    client.close();
+  }
 }
 
 async function deleteReferenceByID(reference_id) {
@@ -178,31 +164,30 @@ async function getAuthorsByReferenceID(reference_id) {
   // }
 }
 
-async function addAuthorIDToReferenceID(reference_id, author_id) {
-  console.log("addAuthorIDToReferenceID", reference_id, author_id);
+async function addVenueToReferenceID(reference_id, venue) {
+  console.log("addVenueToReferenceID", reference_id, venue);
 
-  // const db = await open({
-  //   filename: "./db/database.db",
-  //   driver: sqlite3.Database,
-  // });
 
-  // const stmt = await db.prepare(`
-  //   INSERT INTO
-  //   Reference_Author(reference_id, author_id)
-  //   VALUES (@reference_id, @author_id);
-  //   `);
 
-  // const params = {
-  //   "@reference_id": reference_id,
-  //   "@author_id": author_id,
-  // };
+  const client = new MongoClient(uri);
 
-  // try {
-  //   return await stmt.run(params);
-  // } finally {
-  //   await stmt.finalize();
-  //   db.close();
-  // }
+  try {
+    await client.connect();
+
+    const queryObj = {
+      // _id: new ObjectId(reference_id),
+      reference_id: +reference_id,
+    };
+
+
+    return await client
+      .db(DB_NAME)
+      .collection(COL_NAME)
+      .updateOne(queryObj, { $push: { venues: venue } });
+  } finally {
+    client.close();
+  }
+
 }
 
 module.exports.getReferences = getReferences;
@@ -212,4 +197,4 @@ module.exports.getReferenceByID = getReferenceByID;
 module.exports.updateReferenceByID = updateReferenceByID;
 module.exports.deleteReferenceByID = deleteReferenceByID;
 module.exports.getAuthorsByReferenceID = getAuthorsByReferenceID;
-module.exports.addAuthorIDToReferenceID = addAuthorIDToReferenceID;
+module.exports.addVenueToReferenceID = addVenueToReferenceID;
