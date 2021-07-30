@@ -56,8 +56,8 @@ async function getReferenceByID(reference_id) {
     await client.connect();
 
     const queryObj = {
-      // _id: new ObjectId(reference_id),
-      reference_id: +reference_id,
+      _id: new ObjectId(reference_id),
+      // reference_id: +reference_id,
     };
 
     return await client.db(DB_NAME).collection(COL_NAME).findOne(queryObj);
@@ -75,8 +75,8 @@ async function updateReferenceByID(reference_id, ref) {
     await client.connect();
 
     const queryObj = {
-      // _id: new ObjectId(reference_id),
-      reference_id: +reference_id,
+      _id: new ObjectId(reference_id),
+      // reference_id: +reference_id,
     };
 
     // If tags is a string convert it to an array
@@ -168,15 +168,14 @@ async function addVenueToReferenceID(reference_id, venue) {
   console.log("addVenueToReferenceID", reference_id, venue);
 
 
-
   const client = new MongoClient(uri);
 
   try {
     await client.connect();
 
     const queryObj = {
-      // _id: new ObjectId(reference_id),
-      reference_id: +reference_id,
+      _id: new ObjectId(reference_id),
+      // reference_id: +reference_id,
     };
 
 
